@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAFIVER – Impresión de Etiquetas QR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2e2e2e;
+    --accent: #c8a84b;
+    --accent2: #8b1a1a;
+    --text: #e8e3d9;
+    --muted: #777;
+    --green: #4caf50;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .logo-mark {
+    width: 42px; height: 42px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+  .header-titles h1 {
+    font-family: var(--mono);
+    font-size: 15px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .header-titles p {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: var(--accent2);
+    color: #ffcdd2;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+
+  /* ─── MAIN LAYOUT ─── */
+  .app-body {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 74px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .control-group { display: flex; flex-direction: column; gap: 6px; }
+  .control-group label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: 1px;
+  }
+
+  input[type="text"], input[type="number"], select, textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 10px;
+    width: 100%;
+    transition: border-color .2s;
+    outline: none;
+  }
+  input[type="text"]:focus, input[type="number"]:focus,
+  select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+
+  .tab-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .tab-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all .2s;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: flex; flex-direction: column; gap: 10px; }
+
+  .info-box {
+    background: #1f1a0e;
+    border: 1px solid #3d2e0a;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #c8a84b99;
+    line-height: 1.6;
+  }
+
+  /* file drop */
+  .file-drop {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .file-drop:hover { border-color: var(--accent); }
+  .file-drop input { display: none; }
+  .file-drop span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .file-drop .file-name {
+    color: var(--accent);
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  /* filter row */
+  .filter-row { display: flex; gap: 6px; }
+  .filter-row input { flex: 1; }
+  .filter-row button {
+    background: var(--border);
+    border: none;
+    color: var(--text);
+    border-radius: 4px;
+    padding: 0 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--mono);
+  }
+  .filter-row button:hover { background: var(--accent); color: var(--bg); }
+
+  .count-badge {
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+
+  .record-list {
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .record-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .record-item:last-child { border-bottom: none; }
+  .record-item:hover { background: #252525; }
+  .record-item.selected { background: #1f1a0e; border-left: 3px solid var(--accent); }
+  .record-item input[type="checkbox"] { accent-color: var(--accent); flex-shrink: 0; }
+  .record-meta { flex: 1; min-width: 0; }
+  .record-meta .ri-id { font-family: var(--mono); font-size: 10px; color: var(--accent); }
+  .record-meta .ri-name { font-size: 11px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .record-meta .ri-ruta { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ─── BTN ─── */
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 4px;
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 100%;
+    transition: filter .2s;
+  }
+  .btn-primary:hover { filter: brightness(1.15); }
+  .btn-primary:disabled { filter: brightness(0.5); cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    width: 100%;
+    transition: all .2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ─── PREVIEW AREA ─── */
+  .preview-area {
+    padding: 28px;
+    overflow-y: auto;
+    background: #141414;
+  }
+  .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .preview-header h2 {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .preview-controls { display: flex; gap: 8px; }
+  .preview-controls button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .preview-controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .preview-controls .btn-print {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #fff;
+    font-weight: 700;
+  }
+  .preview-controls .btn-print:hover { filter: brightness(1.2); }
+
+  /* ─── LABEL GRID ─── */
+  #label-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 100%;
+  }
+  .empty-state .es-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: .3;
+  }
+
+  /* ─── LABEL ─── */
+  /* On screen: preview at 2x (5cm × 2.5cm = ~189px × 94.5px at 96dpi,
+     but we show 2x for readability) */
+  .label-wrapper {
+    position: relative;
+  }
+  .label-wrapper .lw-actions {
+    position: absolute; top: -10px; right: -10px;
+    display: none; gap: 4px;
+  }
+  .label-wrapper:hover .lw-actions { display: flex; }
+  .lw-actions button {
+    background: var(--accent2);
+    border: none;
+    color: #fff;
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: var(--mono);
+  }
+
+  .qr-label {
+    /* Physical: 5cm wide × 2.5cm tall at 96dpi ≈ 189 × 94px */
+    /* Preview: 2× = 378 × 189px */
+    width: 378px;
+    height: 189px;
+    background: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    display: grid;
+    grid-template-columns: 189px 1fr;
+    overflow: hidden;
+    font-family: 'Arial Narrow', Arial, sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  }
+
+  .qr-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-right: 1px solid #ddd;
+    background: #fff;
+  }
+  .qr-col canvas, .qr-col img { display: block; }
+
+  .info-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: #fff;
+  }
+  .info-col .lbl-logo {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #8b1a1a;
+    text-transform: uppercase;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 3px;
+  }
+  .info-col .lbl-tienda {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+  .info-col .lbl-dest {
+    font-size: 8px;
+    color: #555;
+    font-family: monospace;
+    letter-spacing: .5px;
+  }
+  .info-col .lbl-ruta {
+    font-size: 8px;
+    color: #8b1a1a;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .info-col .lbl-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid #eee;
+    padding-top: 3px;
+  }
+  .info-col .lbl-fecha { font-size: 7px; color: #999; }
+
+  /* ─── PRINT STYLES ─── */
+  @media print {
+    @page { margin: 5mm; size: auto; }
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area {
+      position: absolute; top: 0; left: 0;
+      display: flex; flex-wrap: wrap; gap: 2mm;
+    }
+    /* Print size: 5cm × 2.5cm */
+    .qr-label {
+      width: 50mm !important;
+      height: 25mm !important;
+      box-shadow: none !important;
+      border: 0.3mm solid #ccc !important;
+      page-break-inside: avoid;
+    }
+    .qr-col {
+      width: 25mm !important;
+      height: 25mm !important;
+      padding: 1.5mm;
+    }
+    .info-col { padding: 1.5mm 2mm; }
+    .info-col .lbl-logo { font-size: 5pt; }
+    .info-col .lbl-tienda { font-size: 5.5pt; }
+    .info-col .lbl-dest { font-size: 4pt; }
+    .info-col .lbl-ruta { font-size: 4pt; }
+    .info-col .lbl-fecha { font-size: 3.5pt; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">CF</div>
+  <div class="header-titles">
+    <h1>CAFIVER · QR Labels</h1>
+    <p>Sistema de impresión de etiquetas destinatario</p>
+  </div>
+  <span class="header-badge">TIENDA-EN-TIENDA</span>
+</header>
+
+<div class="app-body">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+
+    <!-- MODE TABS -->
+    <div>
+      <div class="section-label">Modo de operación</div>
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-individual" onclick="setMode('individual')">◎ Individual</button>
+        <button class="tab-btn" id="tab-masivo" onclick="setMode('masivo')">⊞ Masivo CSV</button>
+      </div>
+    </div>
+
+    <!-- ── INDIVIDUAL PANEL ── -->
+    <div class="panel active" id="panel-individual">
+      <div class="info-box">
+        Captura los datos del destinatario. El QR contendrá la cadena completa tal como la recibe el lector SAP.
+      </div>
+      <div class="control-group">
+        <label>CLIENTE (Ruta)</label>
+        <input type="text" id="i-cliente" placeholder="0000007214" maxlength="20">
+      </div>
+      <div class="control-group">
+        <label>NOMBRE RUTA</label>
+        <input type="text" id="i-nombre" placeholder="RUTA TRADICIONAL ORIZABA">
+      </div>
+      <div class="control-group">
+        <label>VKORG</label>
+        <input type="text" id="i-vkorg" value="COTT" maxlength="10">
+      </div>
+      <div class="control-group">
+        <label>VTWEG</label>
+        <input type="text" id="i-vtweg" value="TT" maxlength="10">
+      </div>
+      <div class="control-group">
+        <label>SPART</label>
+        <input type="text" id="i-spart" value="IN" maxlength="10">
+      </div>
+      <div class="control-group">
+        <label>PARVW</label>
+        <input type="text" id="i-parvw" value="WE" maxlength="10">
+      </div>
+      <div class="control-group">
+        <label>INTERLOCUTOR (Destinatario)</label>
+        <input type="text" id="i-interlocutor" placeholder="9000001525">
+      </div>
+      <div class="control-group">
+        <label>NOMBRE TIENDA</label>
+        <input type="text" id="i-tienda" placeholder="TIENDA MADERA">
+      </div>
+      <div class="control-group">
+        <label>FECHA CREACIÓN (AAAAMMDD)</label>
+        <input type="text" id="i-fecha" placeholder="20260304">
+      </div>
+      <div class="control-group">
+        <label>USUARIO CREACIÓN</label>
+        <input type="text" id="i-usuario" value="PORTAL">
+      </div>
+      <button class="btn-primary" onclick="addIndividual()">➕ GENERAR ETIQUETA</button>
+    </div>
+
+    <!-- ── MASIVO PANEL ── -->
+    <div class="panel" id="panel-masivo">
+      <div class="info-box">
+        Carga el CSV de destinatarios (DESTNVO). Se filtrarán automáticamente los registros <strong>PARVW = WE</strong> con INTERLOCUTOR ≠ CLIENTE para obtener las tienditas.
+      </div>
+
+      <label class="file-drop" id="file-drop" onclick="document.getElementById('csv-file').click()">
+        <input type="file" id="csv-file" accept=".csv,.txt" onchange="loadCSV(this)">
+        <span>📂 Click para cargar CSV<br><small>Separado por punto y coma</small></span>
+        <div class="file-name" id="file-name-label"></div>
+      </label>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Registros WE:</span>
+        <span class="count-badge" id="csv-count">0</span>
+      </div>
+
+      <div class="control-group">
+        <label>FILTRAR POR RUTA (CLIENTE)</label>
+        <div class="filter-row">
+          <input type="text" id="filter-ruta" placeholder="ej: 7214" oninput="filterRecords()">
+          <button onclick="clearFilter()">✕</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>FILTRAR POR NOMBRE TIENDA</label>
+        <div class="filter-row">
+          <input type="text" id="filter-nombre" placeholder="ej: MADERA" oninput="filterRecords()">
+          <button onclick="clearFilterNombre()">✕</button>
+        </div>
+      </div>
+
+      <div id="record-list-wrap">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">REGISTROS FILTRADOS</span>
+          <span class="count-badge" id="filtered-count">0</span>
+        </div>
+        <div class="record-list" id="record-list"></div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="btn-secondary" onclick="selectAll()">☑ Todos</button>
+          <button class="btn-secondary" onclick="selectNone()">☐ Ninguno</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="addSelected()" id="btn-add-selected" disabled>➕ AGREGAR SELECCIONADOS</button>
+    </div>
+
+    <!-- SHARED OPTIONS -->
+    <div>
+      <div class="section-label">Opciones de etiqueta</div>
+      <div class="control-group">
+        <label>COPIAS POR ETIQUETA</label>
+        <input type="number" id="opt-copias" value="1" min="1" max="99">
+      </div>
+    </div>
+
+    <button class="btn-secondary" onclick="clearAll()">🗑 Limpiar todo</button>
+  </aside>
+
+  <!-- ═══════════════ PREVIEW AREA ═══════════════ -->
+  <main class="preview-area">
+    <div class="preview-header">
+      <h2>VISTA PREVIA DE ETIQUETAS</h2>
+      <div class="preview-controls">
+        <button onclick="removeSelected()">✕ Quitar selección</button>
+        <button class="btn-print" onclick="printLabels()">🖨 IMPRIMIR</button>
+      </div>
+    </div>
+
+    <div id="label-grid">
+      <div class="empty-state">
+        <div class="es-icon">⬜</div>
+        Genera etiquetas en modo Individual o carga un CSV masivo.<br>
+        Las etiquetas aparecerán aquí antes de imprimir.
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Hidden print container -->
+<div id="print-area" style="display:none;"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────
+let mode = 'individual';
+let csvRecords = [];    // all WE records from CSV
+let filteredRecords = []; // after filter
+let labelQueue = [];   // labels to print
+let selectedLabels = new Set();
+
+// ─── MODE SWITCH ─────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('tab-individual').classList.toggle('active', m === 'individual');
+  document.getElementById('tab-masivo').classList.toggle('active', m === 'masivo');
+  document.getElementById('panel-individual').classList.toggle('active', m === 'individual');
+  document.getElementById('panel-masivo').classList.toggle('active', m === 'masivo');
+}
+
+// ─── CSV LOADING ──────────────────────────────────────
+function loadCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('file-name-label').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    // detect encoding issues — try latin1
+    const text = e.target.result;
+    parseCSV(text);
+  };
+  reader.readAsText(file, 'ISO-8859-1');
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return;
+
+  // detect header
+  const headerLine = lines[0].split(';');
+  const colMap = {};
+  headerLine.forEach((h, i) => { colMap[h.trim().toUpperCase()] = i; });
+
+  const CI = colMap['CLIENTE'] ?? 0;
+  const NI = colMap['NOMBRE'] ?? 1;
+  const VKI = colMap['VKORG'] ?? 2;
+  const VTI = colMap['VTWEG'] ?? 3;
+  const SPI = colMap['SPART'] ?? 4;
+  const PAI = colMap['PARVW'] ?? 5;
+  const INI = colMap['INTERLOCUTOR'] ?? 6;
+  const NNI = colMap['NOMBRE_INTERLOCUTOR'] ?? 7;
+  const FCI = colMap['FECHA_CREACION'] ?? 8;
+  const UCI = colMap['USUARIO_CREACION'] ?? 9;
+
+  csvRecords = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(';');
+    if (cols.length < 7) continue;
+    const parvw = (cols[PAI] ?? '').trim();
+    if (parvw !== 'WE') continue;
+    const cliente = (cols[CI] ?? '').trim().replace(/^0+/, '') || '';
+    const interlocutor = (cols[INI] ?? '').trim().replace(/^0+/, '') || '';
+    // skip self-references (ruta = destinatario)
+    if (!interlocutor || interlocutor === cliente) continue;
+    csvRecords.push({
+      cliente: (cols[CI] ?? '').trim(),
+      nombre: (cols[NI] ?? '').trim(),
+      vkorg: (cols[VKI] ?? '').trim(),
+      vtweg: (cols[VTI] ?? '').trim(),
+      spart: (cols[SPI] ?? '').trim(),
+      parvw: parvw,
+      interlocutor: (cols[INI] ?? '').trim(),
+      nombre_interlocutor: (cols[NNI] ?? '').trim(),
+      fecha_creacion: (cols[FCI] ?? '').trim(),
+      usuario_creacion: (cols[UCI] ?? '').trim(),
+    });
+  }
+
+  document.getElementById('csv-count').textContent = csvRecords.length;
+  filterRecords();
+}
+
+function filterRecords() {
+  const fr = (document.getElementById('filter-ruta').value || '').trim().toUpperCase();
+  const fn = (document.getElementById('filter-nombre').value || '').trim().toUpperCase();
+  filteredRecords = csvRecords.filter(r => {
+    const rutaOk = !fr || r.cliente.includes(fr) || r.nombre.toUpperCase().includes(fr);
+    const nombreOk = !fn || r.nombre_interlocutor.toUpperCase().includes(fn);
+    return rutaOk && nombreOk;
+  });
+  document.getElementById('filtered-count').textContent = filteredRecords.length;
+  renderRecordList();
+  document.getElementById('btn-add-selected').disabled = filteredRecords.length === 0;
+}
+
+function clearFilter() { document.getElementById('filter-ruta').value = ''; filterRecords(); }
+function clearFilterNombre() { document.getElementById('filter-nombre').value = ''; filterRecords(); }
+
+function renderRecordList() {
+  const list = document.getElementById('record-list');
+  if (filteredRecords.length === 0) {
+    list.innerHTML = '<div style="padding:12px;text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono)">Sin resultados</div>';
+    return;
+  }
+  list.innerHTML = filteredRecords.slice(0, 500).map((r, i) => `
+    <div class="record-item" onclick="toggleRec(${i})">
+      <input type="checkbox" class="rec-cb" data-idx="${i}" onclick="event.stopPropagation(); toggleRec(${i})">
+      <div class="record-meta">
+        <div class="ri-id">${r.interlocutor}</div>
+        <div class="ri-name">${r.nombre_interlocutor || '(sin nombre)'}</div>
+        <div class="ri-ruta">Ruta: ${r.cliente} · ${r.nombre}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleRec(i) {
+  const cbs = document.querySelectorAll('.rec-cb');
+  const cb = cbs[i];
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  cb.closest('.record-item').classList.toggle('selected', cb.checked);
+}
+
+function selectAll() {
+  document.querySelectorAll('.rec-cb').forEach(cb => {
+    cb.checked = true;
+    cb.closest('.record-item').classList.add('selected');
+  });
+}
+function selectNone() {
+  document.querySelectorAll('.rec-cb').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.record-item').classList.remove('selected');
+  });
+}
+
+function addSelected() {
+  const cbs = document.querySelectorAll('.rec-cb');
+  const copias = parseInt(document.getElementById('opt-copias').value) || 1;
+  let added = 0;
+  cbs.forEach((cb, i) => {
+    if (!cb.checked) return;
+    const r = filteredRecords[i];
+    if (!r) return;
+    for (let c = 0; c < copias; c++) {
+      labelQueue.push(buildLabelData(r));
+      added++;
+    }
+  });
+  if (added > 0) renderGrid();
+}
+
+// ─── INDIVIDUAL ───────────────────────────────────────
+function addIndividual() {
+  const copias = parseInt(document.getElementById('opt-copias').value) || 1;
+  const r = {
+    cliente: document.getElementById('i-cliente').value.trim(),
+    nombre: document.getElementById('i-nombre').value.trim(),
+    vkorg: document.getElementById('i-vkorg').value.trim(),
+    vtweg: document.getElementById('i-vtweg').value.trim(),
+    spart: document.getElementById('i-spart').value.trim(),
+    parvw: document.getElementById('i-parvw').value.trim(),
+    interlocutor: document.getElementById('i-interlocutor').value.trim(),
+    nombre_interlocutor: document.getElementById('i-tienda').value.trim(),
+    fecha_creacion: document.getElementById('i-fecha').value.trim(),
+    usuario_creacion: document.getElementById('i-usuario').value.trim(),
+  };
+  if (!r.interlocutor) { alert('Ingresa el número de INTERLOCUTOR (destinatario)'); return; }
+  for (let c = 0; c < copias; c++) labelQueue.push(buildLabelData(r));
+  renderGrid();
+}
+
+// ─── BUILD LABEL DATA ─────────────────────────────────
+function buildLabelData(r) {
+  // QR string: pad cliente and interlocutor to 10 digits
+  const pad = (s, n) => String(s).padStart(n, '0');
+  const qrStr = [
+    pad(r.cliente, 10),
+    r.nombre,
+    r.vkorg,
+    r.vtweg,
+    r.spart,
+    r.parvw,
+    pad(r.interlocutor, 10),
+    r.nombre_interlocutor,
+    r.fecha_creacion,
+    r.usuario_creacion
+  ].join(';');
+  return {
+    qrStr,
+    tienda: r.nombre_interlocutor || r.interlocutor,
+    interlocutor: pad(r.interlocutor, 10),
+    ruta: r.nombre,
+    cliente: pad(r.cliente, 10),
+    fecha: r.fecha_creacion,
+    id: Math.random().toString(36).slice(2)
+  };
+}
+
+// ─── RENDER GRID ──────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('label-grid');
+  if (labelQueue.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="es-icon">⬜</div>No hay etiquetas. Genera desde el panel lateral.</div>`;
+    return;
+  }
+  grid.innerHTML = '';
+  labelQueue.forEach((lbl, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'label-wrapper';
+    wrap.dataset.idx = idx;
+    wrap.innerHTML = `
+      <div class="lw-actions">
+        <button onclick="removeLabel(${idx})">✕ Quitar</button>
+      </div>
+      <div class="qr-label" id="lbl-${lbl.id}">
+        <div class="qr-col" id="qr-${lbl.id}"></div>
+        <div class="info-col">
+          <div class="lbl-logo">☕ CAFIVER · EST. 1985</div>
+          <div class="lbl-tienda">${esc(lbl.tienda)}</div>
+          <div class="lbl-dest">${esc(lbl.interlocutor)}</div>
+          <div class="lbl-ruta">${esc(lbl.ruta)}</div>
+          <div class="lbl-bottom">
+            <span class="lbl-fecha">${fmtFecha(lbl.fecha)}</span>
+            <span class="lbl-dest" style="font-size:6px;color:#bbb">QR: ${esc(lbl.qrStr.substring(0,20))}…</span>
+          </div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(wrap);
+    // render QR — size 170px fits the 189px col
+    setTimeout(() => {
+      const qrContainer = document.getElementById(`qr-${lbl.id}`);
+      if (qrContainer) {
+        new QRCode(qrContainer, {
+          text: lbl.qrStr,
+          width: 170,
+          height: 170,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    }, 0);
+  });
+}
+
+function removeLabel(idx) {
+  labelQueue.splice(idx, 1);
+  renderGrid();
+}
+
+function removeSelected() {
+  // remove labeled wrappers (future: checkboxes on labels)
+  labelQueue = [];
+  renderGrid();
+}
+
+function clearAll() {
+  labelQueue = [];
+  renderGrid();
+}
+
+// ─── PRINT ───────────────────────────────────────────
+async function printLabels() {
+  if (labelQueue.length === 0) { alert('No hay etiquetas para imprimir.'); return; }
+
+  const pa = document.getElementById('print-area');
+  pa.innerHTML = '';
+  pa.style.display = 'flex';
+  pa.style.flexWrap = 'wrap';
+  pa.style.gap = '2mm';
+
+  const promises = labelQueue.map(lbl => {
+    return new Promise(resolve => {
+      const div = document.createElement('div');
+      div.className = 'qr-label';
+      div.innerHTML = `
+        <div class="qr-col" id="pqr-${lbl.id}"></div>
+        <div class="info-col">
+          <div class="lbl-logo">☕ CAFIVER · EST. 1985</div>
+          <div class="lbl-tienda">${esc(lbl.tienda)}</div>
+          <div class="lbl-dest">${esc(lbl.interlocutor)}</div>
+          <div class="lbl-ruta">${esc(lbl.ruta)}</div>
+          <div class="lbl-bottom">
+            <span class="lbl-fecha">${fmtFecha(lbl.fecha)}</span>
+          </div>
+        </div>
+      `;
+      pa.appendChild(div);
+      setTimeout(() => {
+        const qc = document.getElementById(`pqr-${lbl.id}`);
+        if (qc) {
+          new QRCode(qc, {
+            text: lbl.qrStr,
+            width: 88,   // ~25mm at 96dpi for print
+            height: 88,
+            colorDark: '#000',
+            colorLight: '#fff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }
+        resolve();
+      }, 10);
+    });
+  });
+
+  await Promise.all(promises);
+  setTimeout(() => { window.print(); pa.innerHTML = ''; pa.style.display = 'none'; }, 400);
+}
+
+// ─── HELPERS ─────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtFecha(f) {
+  if (!f || f.length < 8) return f || '';
+  return `${f.slice(6,8)}/${f.slice(4,6)}/${f.slice(0,4)}`;
+}
+
+// ─── INIT ─────────────────────────────────────────────
+renderGrid();
+</script>
+</body>
+</html>
