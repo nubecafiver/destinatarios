@@ -86,8 +86,9 @@ input:focus{border-color:var(--ac)}
 .la button{background:var(--red);border:none;color:#fff;font-size:9px;padding:3px 6px;border-radius:3px;cursor:pointer;font-family:var(--mono)}
 
 .qlabel{
-  width:95px;
-  height:190px;
+  /* Physical: 2.5cm × 5cm — Preview 2×: 189px × 378px */
+  width:189px;
+  height:378px;
   background:#fff;
   border-radius:3px;
   display:flex;
@@ -95,40 +96,40 @@ input:focus{border-color:var(--ac)}
   align-items:center;
   justify-content:flex-start;
   overflow:hidden;
-  box-shadow:0 3px 10px rgba(0,0,0,.6);
-  padding:5px 4px 4px 4px;
+  box-shadow:0 3px 12px rgba(0,0,0,.6);
+  padding:8px 6px 6px 6px;
 }
 .ql-logo{
-  width:68px;height:68px;
+  width:120px;height:120px;
   border-radius:50%;
   overflow:hidden;
   flex-shrink:0;
 }
 .ql-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .ql-qr{
-  margin-top:3px;
+  margin-top:6px;
   flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
 }
 .ql-qr canvas,.ql-qr img{display:block}
 .ql-num{
-  font-size:8.5px;
+  font-size:14px;
   font-family:monospace;
   color:#111;
-  letter-spacing:.3px;
-  margin-top:2px;
+  letter-spacing:.5px;
+  margin-top:5px;
   text-align:center;
 }
 .ql-ruta{
-  font-size:6px;
+  font-size:10px;
   font-weight:700;
   color:#8b1a1a;
   text-align:center;
   text-transform:uppercase;
   letter-spacing:.5px;
-  margin-top:2px;
+  margin-top:4px;
   line-height:1.3;
-  padding:0 3px;
+  padding:0 6px;
   word-break:break-word;
 }
 
@@ -137,18 +138,20 @@ input:focus{border-color:var(--ac)}
   @page{margin:2mm;size:auto}
   body *{visibility:hidden}
   #parea,#parea *{visibility:visible}
-  #parea{position:absolute;top:0;left:0;display:flex;flex-wrap:wrap;gap:1mm}
+  #parea{position:absolute;top:0;left:0;display:flex;flex-wrap:wrap;gap:1.5mm}
   .qlabel{
-    width:25mm!important;height:50mm!important;
-    box-shadow:none!important;border-radius:1mm!important;
+    width:25mm!important;
+    height:50mm!important;
+    box-shadow:none!important;
+    border-radius:.5mm!important;
     page-break-inside:avoid;
     padding:1.5mm 1mm 1mm 1mm!important;
   }
-  .ql-logo{width:18mm!important;height:18mm!important}
-  .ql-qr{margin-top:.8mm!important}
-  .ql-qr canvas,.ql-qr img{width:18mm!important;height:18mm!important}
-  .ql-num{font-size:5pt!important;margin-top:.5mm!important}
-  .ql-ruta{font-size:4pt!important;margin-top:.5mm!important;letter-spacing:.3pt!important}
+  .ql-logo{width:16mm!important;height:16mm!important}
+  .ql-qr{margin-top:1mm!important}
+  .ql-qr canvas,.ql-qr img{width:21mm!important;height:21mm!important}
+  .ql-num{font-size:6pt!important;margin-top:1mm!important;letter-spacing:.3pt!important}
+  .ql-ruta{font-size:5pt!important;margin-top:.8mm!important;letter-spacing:.3pt!important}
 }
 </style>
 </head>
@@ -198,25 +201,15 @@ input:focus{border-color:var(--ac)}
 
   <!-- CSV MASIVO -->
   <div class="panel" id="p-csv">
-    <!-- CSV automático desde repo + opción manual -->
-    <div style="background:#0d1a0d;border:1px solid #1a3a1a;border-radius:4px;padding:9px 11px;font-size:11px;color:#81c784;font-family:var(--mono);line-height:1.6">
-      📡 CSV se sincroniza automáticamente cada noche desde Google Drive.<br>
-      <span style="color:var(--mt)">Última carga: <span id="csv-date">—</span></span>
-    </div>
-    <button class="bp" onclick="autoLoad()" id="btn-reload" style="background:var(--bd);color:var(--tx)">
-      🔄 RECARGAR CSV AHORA
-    </button>
+    <label class="drop" onclick="document.getElementById('csvf').click()">
+      <input type="file" id="csvf" accept=".csv,.txt" onchange="loadCSV(this)">
+      <div class="dt">📂 Cargar CSV de destinatarios<br><small>Separado por punto y coma ( ; )</small></div>
+      <div class="df" id="fn-label"></div>
+    </label>
     <div style="display:flex;align-items:center;justify-content:space-between">
       <span style="font-family:var(--mono);font-size:10px;color:var(--mt)">Registros WE:</span>
       <span class="cbadge" id="total-cnt">0</span>
     </div>
-    <!-- Carga manual como respaldo -->
-    <div style="font-family:var(--mono);font-size:9px;color:var(--mt);text-align:center;margin-top:-4px">o carga manual como respaldo</div>
-    <label class="drop" onclick="document.getElementById('csvf').click()">
-      <input type="file" id="csvf" accept=".csv,.txt" onchange="loadCSVFile(this)">
-      <div class="dt" style="font-size:10px">📂 Cargar CSV manual</div>
-      <div class="df" id="fn-label"></div>
-    </label>
     <div class="cg">
       <label>FILTRAR POR FECHA DE CREACIÓN</label>
       <div class="frow">
@@ -430,7 +423,7 @@ function render(){
     g.appendChild(w);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
-      if(el)new QRCode(el,{text:lb.qrStr,width:66,height:66,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+      if(el)new QRCode(el,{text:lb.qrStr,width:162,height:162,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
     },0);
   });
 }
@@ -450,7 +443,7 @@ async function doPrint(){
     pa.appendChild(d);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
-      if(el)new QRCode(el,{text:lb.qrStr,width:72,height:72,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+      if(el)new QRCode(el,{text:lb.qrStr,width:200,height:200,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
       res();
     },20);
   }));
@@ -460,53 +453,7 @@ async function doPrint(){
 
 function v(id){return(document.getElementById(id).value||"").trim();}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-
-/* ── AUTO-LOAD CSV desde el mismo repo (GitHub Pages) ── */
-function autoLoad(){
-  const btn=document.getElementById("btn-reload");
-  if(btn){btn.textContent="⏳ Descargando...";btn.disabled=true;}
-  // Ruta relativa — funciona en GitHub Pages y localmente si el CSV está junto al HTML
-  const csvUrl="destnvo.csv?t="+Date.now();
-  fetch(csvUrl)
-    .then(r=>{
-      if(!r.ok) throw new Error("HTTP "+r.status);
-      return r.arrayBuffer();
-    })
-    .then(buf=>{
-      // Decodificar ISO-8859-1 (latin1)
-      const dec=new TextDecoder("iso-8859-1");
-      const txt=dec.decode(buf);
-      parseCSV(txt);
-      const now=new Date().toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"});
-      const el=document.getElementById("csv-date");
-      if(el)el.textContent=now;
-      if(btn){btn.textContent="🔄 RECARGAR CSV AHORA";btn.disabled=false;}
-    })
-    .catch(err=>{
-      console.warn("No se pudo cargar CSV automáticamente:",err.message);
-      if(btn){btn.textContent="⚠ No disponible — usa carga manual";btn.disabled=false;}
-    });
-}
-
-/* Carga manual desde input file */
-function loadCSVFile(inp){
-  const f=inp.files[0]; if(!f)return;
-  document.getElementById("fn-label").textContent=f.name;
-  const r=new FileReader();
-  r.onload=e=>{
-    const dec=new TextDecoder("iso-8859-1");
-    const txt=dec.decode(e.target.result);
-    parseCSV(txt);
-    const now=new Date().toLocaleString("es-MX",{dateStyle:"short",timeStyle:"short"});
-    const el=document.getElementById("csv-date");
-    if(el)el.textContent=now+" (manual)";
-  };
-  r.readAsArrayBuffer(f);
-}
-
 render();
-// Al cargar la página, intentar descargar el CSV automáticamente
-autoLoad();
 </script>
 </body>
 </html>
