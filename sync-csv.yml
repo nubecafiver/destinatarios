@@ -1,0 +1,50 @@
+name: Sync CSV desde Google Drive
+
+on:
+  schedule:
+    # 22:40 hora México (UTC-6) = 04:40 UTC del día siguiente
+    - cron: '40 4 * * *'
+  workflow_dispatch:   # permite ejecutar manualmente desde GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar CSV desde Google Drive
+        run: |
+          FILE_ID="${{ secrets.GDRIVE_FILE_ID }}"
+          URL="https://drive.google.com/uc?export=download&id=${FILE_ID}"
+          # Google Drive redirige archivos grandes con cookie — manejamos ambos casos
+          curl -L -c /tmp/cookies.txt \
+               "https://drive.google.com/uc?export=download&id=${FILE_ID}" \
+               -o /tmp/check.html
+          # Si hay confirmación de descarga grande, seguir el link
+          CONFIRM=$(grep -o 'confirm=[^&"]*' /tmp/check.html | head -1 | cut -d= -f2)
+          if [ -n "$CONFIRM" ]; then
+            curl -L -b /tmp/cookies.txt \
+                 "https://drive.google.com/uc?export=download&confirm=${CONFIRM}&id=${FILE_ID}" \
+                 -o destnvo.csv
+          else
+            curl -L -c /tmp/cookies.txt \
+                 "https://drive.google.com/uc?export=download&id=${FILE_ID}" \
+                 -o destnvo.csv
+          fi
+          echo "Descargado. Primeras líneas:"
+          head -3 destnvo.csv
+
+      - name: Commit y push si hay cambios
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add destnvo.csv
+          if git diff --staged --quiet; then
+            echo "Sin cambios en el CSV, nada que commitear."
+          else
+            git commit -m "Auto-sync CSV desde Google Drive $(date '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
