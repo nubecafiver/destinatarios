@@ -190,15 +190,15 @@ input:focus{border-color:var(--ac);background:#1a1700}
     <div id="ind-msg" class="msg-info">Escribe el número para buscar en el CSV</div>
     <div class="cg">
       <label>Nombre Tienda</label>
-      <input id="ind-tda" placeholder="AB MARELI" readonly style="opacity:.7">
+      <input id="ind-tda" placeholder="AB MARELI">
     </div>
     <div class="cg">
       <label>Nombre Ruta</label>
-      <input id="ind-ruta" placeholder="CORDOBA" readonly style="opacity:.7">
+      <input id="ind-ruta" placeholder="CORDOBA">
     </div>
     <div class="cg">
       <label>Copias</label>
-      <input type="number" id="ind-cop" value="1" min="1" max="99" style="opacity:1" readonly=false>
+      <input type="number" id="ind-cop" value="1" min="1" max="99">
     </div>
     <button class="bp" onclick="addInd()">+ Generar Etiqueta</button>
   </div>
@@ -392,7 +392,7 @@ function addInd() {
   if(!num) { alert("Escribe el número de destinatario."); return; }
   const cop = parseInt(document.getElementById("ind-cop").value)||1;
   const tda = v("ind-tda"), ruta = v("ind-ruta");
-  if(!tda && !ruta) { alert("El número no se encontró en el CSV o los datos aún no cargaron. Espera un momento."); return; }
+  
   const rec = allRecs.find(r => r.int.replace(/^0+/,"") === num.replace(/^0+/,"")) || {int:num,tda:tda,nom:ruta};
   for(let c=0; c<cop; c++) queue.push(mkLabel(rec));
   render();
