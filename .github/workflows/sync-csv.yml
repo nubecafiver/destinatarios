@@ -1,0 +1,44 @@
+name: Sync CSV desde Google Drive
+
+on:
+  schedule:
+    - cron: '40 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar CSV desde Google Drive
+        run: |
+          FILE_ID="${{ secrets.GDRIVE_FILE_ID }}"
+          curl -L -c /tmp/cook.txt \
+            "https://drive.google.com/uc?export=download&id=${FILE_ID}" \
+            -o /tmp/check.html
+          CONFIRM=$(grep -o 'confirm=[^&"]*' /tmp/check.html | head -1 | cut -d= -f2)
+          if [ -n "$CONFIRM" ]; then
+            curl -L -b /tmp/cook.txt \
+              "https://drive.google.com/uc?export=download&confirm=${CONFIRM}&id=${FILE_ID}" \
+              -o destnvo.csv
+          else
+            curl -L -c /tmp/cook.txt \
+              "https://drive.google.com/uc?export=download&id=${FILE_ID}" \
+              -o destnvo.csv
+          fi
+
+      - name: Commit si hay cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add destnvo.csv
+          if git diff --staged --quiet; then
+            echo "Sin cambios"
+          else
+            git commit -m "Auto-sync CSV $(date '+%Y-%m-%d %H:%M')"
+            git push
+          fi
