@@ -423,6 +423,15 @@ async function doPrint(){
 }
 
 function v(id){return(document.getElementById(id).value||"").trim();}
+function autoLoad(){
+  fetch("destnvo.csv?t="+Date.now())
+    .then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer();})
+    .then(buf=>{
+      parseCSV(new TextDecoder("iso-8859-1").decode(buf));
+    })
+    .catch(err=>{console.warn("CSV no disponible:",err.message);});
+}
+
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 autoLoad();
 render();
