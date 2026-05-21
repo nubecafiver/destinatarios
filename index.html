@@ -95,10 +95,11 @@ input:focus{border-color:var(--ac)}
 }
 .ql-main{
   flex:1;display:flex;flex-direction:column;
-  align-items:center;padding:8px 5px 6px 5px;
-  background:#fff;min-width:0;
+  align-items:center;justify-content:flex-start;
+  padding:8px 5px 6px 5px;
+  background:#fff;min-width:0;overflow:hidden;
 }
-.ql-logo{width:130px;height:130px;border-radius:50%;overflow:hidden;flex-shrink:0}
+.ql-logo{width:110px;height:110px;border-radius:50%;overflow:hidden;flex-shrink:0}
 .ql-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .ql-qr{margin-top:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .ql-qr canvas,.ql-qr img{display:block}
@@ -393,7 +394,7 @@ function render(){
     g.appendChild(w);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
-      if(el)new QRCode(el,{text:lb.qrStr,width:155,height:155,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+      if(el)new QRCode(el,{text:lb.qrStr,width:140,height:140,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
     },0);
   });
 }
@@ -413,7 +414,7 @@ async function doPrint(){
     pa.appendChild(d);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
-      if(el)new QRCode(el,{text:lb.qrStr,width:190,height:190,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+      if(el)new QRCode(el,{text:lb.qrStr,width:140,height:140,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
       res();
     },20);
   }));
@@ -422,14 +423,6 @@ async function doPrint(){
 }
 
 function v(id){return(document.getElementById(id).value||"").trim();}
-function autoLoad(){
-  fetch("destnvo.csv?t="+Date.now())
-    .then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer();})
-    .then(buf=>{
-      parseCSV(new TextDecoder("iso-8859-1").decode(buf));
-    })
-    .catch(err=>{console.warn("CSV no disponible:",err.message);});
-}  
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 autoLoad();
 render();
