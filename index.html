@@ -316,9 +316,7 @@ function autoLoad(){
 
 function ci(h,k){const i=h.findIndex(x=>x.trim().toUpperCase()===k);return i>=0?i:0;}
 function parseCSV(txt){
-  const lines=txt.split(/
-?
-/).filter(l=>l.trim());
+  const lines=txt.split("\n").filter(l=>l.trim());
   if(lines.length<2)return;
   const h=lines[0].split(";");
   const CI=ci(h,"CLIENTE"),NI=ci(h,"NOMBRE"),PAI=ci(h,"PARVW"),
