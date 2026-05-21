@@ -96,10 +96,11 @@ input:focus{border-color:var(--ac)}
 .ql-main{
   flex:1;display:flex;flex-direction:column;
   align-items:center;justify-content:flex-start;
-  padding:8px 5px 6px 5px;
-  background:#fff;min-width:0;overflow:hidden;
+  padding:8px 4px 6px 4px;
+  background:#fff;
+  width:165px;max-width:165px;overflow:hidden;
 }
-.ql-logo{width:110px;height:110px;border-radius:50%;overflow:hidden;flex-shrink:0}
+.ql-logo{width:100px;height:100px;border-radius:50%;overflow:hidden;flex-shrink:0;}
 .ql-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .ql-qr{margin-top:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .ql-qr canvas,.ql-qr img{display:block}
@@ -394,7 +395,7 @@ function render(){
     g.appendChild(w);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
-      if(el)new QRCode(el,{text:lb.qrStr,width:140,height:140,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+      if(el)new QRCode(el,{text:lb.qrStr,width:140,width:130,height:130,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
     },0);
   });
 }
