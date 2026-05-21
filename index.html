@@ -82,7 +82,7 @@ input:focus{border-color:var(--ac);background:#1a1700}
    ══════════════════════════════════ */
 .qlabel{
   width:189px;
-  height:378px;
+  height:492px;
   background:#fff;
   border-radius:2px;
   display:flex;
@@ -97,13 +97,13 @@ input:focus{border-color:var(--ac);background:#1a1700}
   display:flex;
   flex-direction:column;
   align-items:center;
-  padding:8px 4px 6px 4px;
+  padding:10px 4px 8px 4px;
   background:#fff;
   overflow:hidden;
 }
 .ql-logo{
-  width:110px;
-  height:110px;
+  width:130px;
+  height:130px;
   border-radius:50%;
   overflow:hidden;
   flex-shrink:0;
@@ -130,23 +130,23 @@ input:focus{border-color:var(--ac);background:#1a1700}
   max-height:155px;
 }
 .ql-num{
-  font-size:13px;
+  font-size:16px;
   font-family:"Courier New",monospace;
   color:#111;
   font-weight:700;
-  letter-spacing:.3px;
-  margin-top:5px;
+  letter-spacing:.5px;
+  margin-top:6px;
   text-align:center;
   width:100%;
 }
 .ql-ruta{
-  font-size:9px;
+  font-size:12px;
   font-weight:800;
   color:#7a1515;
   text-align:center;
   text-transform:uppercase;
   letter-spacing:.8px;
-  margin-top:3px;
+  margin-top:4px;
   line-height:1.3;
   padding:0 4px;
   word-break:break-word;
@@ -167,15 +167,15 @@ input:focus{border-color:var(--ac);background:#1a1700}
   text-orientation:mixed;
   transform:rotate(180deg);
   font-family:"Arial Narrow",Arial,sans-serif;
-  font-size:10px;
+  font-size:20px;
   font-weight:700;
   color:#fff;
-  letter-spacing:1.5px;
+  letter-spacing:2px;
   text-transform:uppercase;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  max-height:355px;
+  max-height:475px;
 }
 
 @media print{
@@ -183,15 +183,15 @@ input:focus{border-color:var(--ac);background:#1a1700}
   body *{visibility:hidden}
   #parea,#parea *{visibility:visible}
   #parea{position:absolute;top:0;left:0;display:flex;flex-wrap:wrap;gap:1mm}
-  .qlabel{width:25mm!important;height:50mm!important;box-shadow:none!important;page-break-inside:avoid}
-  .ql-main{width:21mm!important;padding:1mm!important}
-  .ql-logo{width:14mm!important;height:14mm!important}
-  .ql-qr{width:19mm!important;margin-top:.5mm!important}
+  .qlabel{width:25mm!important;height:65mm!important;box-shadow:none!important;page-break-inside:avoid}
+  .ql-main{width:21mm!important;padding:1.5mm 1mm!important}
+  .ql-logo{width:16mm!important;height:16mm!important}
+  .ql-qr{width:19mm!important;margin-top:.8mm!important}
   .ql-qr canvas,.ql-qr img{max-width:19mm!important;max-height:19mm!important}
-  .ql-num{font-size:5.5pt!important;margin-top:.5mm!important}
-  .ql-ruta{font-size:4pt!important;margin-top:.3mm!important}
+  .ql-num{font-size:7pt!important;margin-top:1mm!important}
+  .ql-ruta{font-size:5.5pt!important;margin-top:.5mm!important}
   .ql-side{flex:none;width:4mm!important}
-  .ql-side span{font-size:3.5pt!important;letter-spacing:.5pt!important}
+  .ql-side span{font-size:7pt!important;letter-spacing:1pt!important}
 }
 </style>
 </head>
@@ -316,7 +316,9 @@ function autoLoad(){
 
 function ci(h,k){const i=h.findIndex(x=>x.trim().toUpperCase()===k);return i>=0?i:0;}
 function parseCSV(txt){
-  const lines=txt.split("\n").filter(l=>l.trim());
+  const lines=txt.split(/
+?
+/).filter(l=>l.trim());
   if(lines.length<2)return;
   const h=lines[0].split(";");
   const CI=ci(h,"CLIENTE"),NI=ci(h,"NOMBRE"),PAI=ci(h,"PARVW"),
