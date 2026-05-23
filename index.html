@@ -89,7 +89,7 @@ input:focus{border-color:var(--ac);background:#1a1700}
   flex-direction:row;
   overflow:hidden;
   box-shadow:0 4px 20px rgba(0,0,0,.7);
-  border:1px solid #ddd;
+  border:1px solid #999;
 }
 .ql-main{
   width:165px;
@@ -132,8 +132,8 @@ input:focus{border-color:var(--ac);background:#1a1700}
 .ql-num{
   font-size:16px;
   font-family:"Courier New",monospace;
-  color:#111;
-  font-weight:700;
+  color:#000;
+  font-weight:900;
   letter-spacing:.5px;
   margin-top:6px;
   text-align:center;
@@ -141,8 +141,8 @@ input:focus{border-color:var(--ac);background:#1a1700}
 }
 .ql-ruta{
   font-size:12px;
-  font-weight:800;
-  color:#7a1515;
+  font-weight:900;
+  color:#5a0000;
   text-align:center;
   text-transform:uppercase;
   letter-spacing:.8px;
@@ -154,7 +154,7 @@ input:focus{border-color:var(--ac);background:#1a1700}
 }
 .ql-side{
   flex:1;
-  background:#7a1515;
+  background:#4a0000;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -168,8 +168,8 @@ input:focus{border-color:var(--ac);background:#1a1700}
   transform:rotate(180deg);
   font-family:"Arial Narrow",Arial,sans-serif;
   font-size:20px;
-  font-weight:700;
-  color:#fff;
+  font-weight:900;
+  color:#ffffff;
   letter-spacing:2px;
   text-transform:uppercase;
   white-space:nowrap;
@@ -190,7 +190,7 @@ input:focus{border-color:var(--ac);background:#1a1700}
   .ql-qr canvas,.ql-qr img{max-width:19mm!important;max-height:19mm!important}
   .ql-num{font-size:7pt!important;margin-top:1mm!important}
   .ql-ruta{font-size:5.5pt!important;margin-top:.5mm!important}
-  .ql-side{flex:none;width:4mm!important}
+  .ql-side{flex:none;width:4mm!important;background:#4a0000!important}
   .ql-side span{font-size:7pt!important;letter-spacing:1pt!important}
 }
 </style>
@@ -428,7 +428,7 @@ function render(){
     g.appendChild(w);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
-      if(el)new QRCode(el,{text:lb.qrStr,width:150,height:150,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+      if(el)new QRCode(el,{text:lb.qrStr,width:150,height:150,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.H});
     },0);
   });
 }
@@ -447,7 +447,7 @@ async function doPrint(){
     pa.appendChild(d);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
-      if(el)new QRCode(el,{text:lb.qrStr,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+      if(el)new QRCode(el,{text:lb.qrStr,width:180,height:180,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.H});
       res();
     },25);
   }));
