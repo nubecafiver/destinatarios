@@ -322,6 +322,7 @@ function parseCSV(txt){
   const CI=ci(h,"CLIENTE"),NI=ci(h,"NOMBRE"),PAI=ci(h,"PARVW"),
         INI=ci(h,"INTERLOCUTOR"),NNI=ci(h,"NOMBRE_INTERLOCUTOR"),FCI=ci(h,"FECHA_CREACION");
   allRecs=[];
+  const _seen=new Set();
   for(let i=1;i<lines.length;i++){
     const c=lines[i].split(";");
     if(c.length<7)continue;
@@ -329,6 +330,8 @@ function parseCSV(txt){
     const cliN=(c[CI]||"").trim().replace(/^0+/,"");
     const intN=(c[INI]||"").trim().replace(/^0+/,"");
     if(!intN||intN===cliN)continue;
+    if(_seen.has(intN))continue;
+    _seen.add(intN);
     allRecs.push({cli:(c[CI]||"").trim(),nom:(c[NI]||"").trim(),
       int:(c[INI]||"").trim(),tda:(c[NNI]||"").trim(),fch:(c[FCI]||"").trim()});
   }
