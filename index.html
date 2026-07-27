@@ -178,6 +178,18 @@ input:focus{border-color:var(--ac);background:#1a1700}
   max-height:475px;
 }
 
+.qlabel2{
+  width:189px;height:492px;background:#fff;border-radius:2px;
+  display:flex;flex-direction:column;align-items:center;
+  overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.7);border:1px solid #999;
+}
+.ql2-logo{width:120px;height:120px;border-radius:50%;overflow:hidden;flex-shrink:0;margin-top:8px}
+.ql2-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.ql2-qr{margin-top:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:175px;overflow:hidden}
+.ql2-qr canvas,.ql2-qr img{display:block}
+.ql2-num{font-size:16px;font-family:"Courier New",monospace;color:#000;font-weight:900;letter-spacing:.5px;margin-top:5px;text-align:center;width:100%}
+.ql2-ruta{font-size:12px;font-weight:900;color:#5a0000;text-align:center;text-transform:uppercase;letter-spacing:.8px;margin-top:3px;line-height:1.3;padding:0 6px;word-break:break-word;width:100%}
+.ql2-tda{font-size:18px;font-weight:900;color:#000;text-align:center;text-transform:uppercase;letter-spacing:1px;margin-top:6px;line-height:1.2;padding:6px 6px 0 6px;word-break:break-word;width:100%;border-top:2px solid #000}
 @media print{
   @page{margin:1.5mm;size:auto}
   body *{visibility:hidden}
@@ -192,6 +204,13 @@ input:focus{border-color:var(--ac);background:#1a1700}
   .ql-ruta{font-size:5.5pt!important;margin-top:.5mm!important}
   .ql-side{flex:none;width:4mm!important;background:none!important}
   .ql-side span{font-size:7pt!important;letter-spacing:1pt!important}
+  .qlabel2{width:25mm!important;height:65mm!important;box-shadow:none!important;page-break-inside:avoid;flex-direction:column!important;align-items:center!important}
+  .ql2-logo{width:15mm!important;height:15mm!important;margin-top:1mm!important}
+  .ql2-qr{width:22mm!important;margin-top:.5mm!important}
+  .ql2-qr canvas,.ql2-qr img{max-width:22mm!important;max-height:22mm!important}
+  .ql2-num{font-size:7pt!important;margin-top:.8mm!important}
+  .ql2-ruta{font-size:5pt!important;margin-top:.3mm!important}
+  .ql2-tda{font-size:7pt!important;font-weight:900!important;margin-top:.5mm!important;padding-top:1mm!important;border-top:.3mm solid #000!important}
 }
 </style>
 </head>
@@ -233,6 +252,11 @@ input:focus{border-color:var(--ac);background:#1a1700}
       <label>Copias</label>
       <input type="number" id="ind-cop" value="1" min="1" max="99">
     </div>
+    <div class="cg"><label>Versión de Etiqueta</label>
+      <div class="tabs">
+        <button class="tab on" id="tv1" onclick="setVer(1)">⬜ V1 Lateral</button>
+        <button class="tab" id="tv2" onclick="setVer(2)">⬇ V2 Abajo</button>
+      </div></div>
     <button class="bp" onclick="addInd()">+ Generar Etiqueta</button>
   </div>
 
@@ -271,6 +295,11 @@ input:focus{border-color:var(--ac);background:#1a1700}
       <label>Copias por etiqueta</label>
       <input type="number" id="csv-cop" value="1" min="1" max="99">
     </div>
+    <div class="cg"><label>Versión de Etiqueta</label>
+      <div class="tabs">
+        <button class="tab on" id="tv1b" onclick="setVer(1)">⬜ V1 Lateral</button>
+        <button class="tab" id="tv2b" onclick="setVer(2)">⬇ V2 Abajo</button>
+      </div></div>
     <button class="bp" id="btn-add" disabled onclick="addSel()">+ Agregar Seleccionados</button>
   </div>
 
@@ -305,6 +334,26 @@ function setMode(m){
     document.getElementById("t-"+x).classList.toggle("on",m===x);
     document.getElementById("p-"+x).classList.toggle("on",m===x);
   });
+}
+
+let labelVer=1;
+
+function setVer(v){
+  labelVer=v;
+  [1,2].forEach(n=>{
+    const a=document.getElementById("tv"+n);
+    const b=document.getElementById("tv"+n+"b");
+    if(a)a.classList.toggle("on",n===v);
+    if(b)b.classList.toggle("on",n===v);
+  });
+}
+
+function lblHTML2(lb,qrId){
+  return `<div class="ql2-logo"><img src="data:image/png;base64,${LOGO}" alt="CAFIVER"></div>
+    <div class="ql2-qr" id="${qrId}"></div>
+    <div class="ql2-num">${esc(lb.int)}</div>
+    <div class="ql2-ruta">${esc(lb.ruta)}</div>
+    <div class="ql2-tda">${esc(lb.tda)}</div>`;
 }
 
 function autoLoad(){
@@ -427,7 +476,7 @@ function render(){
     const qrId="qr-"+lb.id;
     const w=document.createElement("div");
     w.className="lw";
-    w.innerHTML=`<div class="la"><button onclick="rmLbl(${idx})">✕ quitar</button></div><div class="qlabel">${lblHTML(lb,qrId)}</div>`;
+    const cls=labelVer===2?"qlabel2":"qlabel";const inner=labelVer===2?lblHTML2(lb,qrId):lblHTML(lb,qrId);w.innerHTML=`<div class="la"><button onclick="rmLbl(${idx})">✕ quitar</button></div><div class="${cls}">${inner}</div>`;
     g.appendChild(w);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
@@ -445,8 +494,8 @@ async function doPrint(){
   const ps=queue.map(lb=>new Promise(res=>{
     const qrId="pqr-"+lb.id;
     const d=document.createElement("div");
-    d.className="qlabel";
-    d.innerHTML=lblHTML(lb,qrId);
+    d.className=labelVer===2?"qlabel2":"qlabel";
+    d.innerHTML=labelVer===2?lblHTML2(lb,qrId):lblHTML(lb,qrId);
     pa.appendChild(d);
     setTimeout(()=>{
       const el=document.getElementById(qrId);
