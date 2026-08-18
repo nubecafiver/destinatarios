@@ -228,9 +228,10 @@ input:focus{border-color:var(--ac);background:#1a1700}
 <aside class="sb">
   <div>
     <div class="sl">Modo de operación</div>
-    <div class="tabs">
+    <div class="tabs" style="grid-template-columns:1fr 1fr 1fr">
       <button class="tab on" id="t-ind" onclick="setMode('ind')">◎ Individual</button>
-      <button class="tab" id="t-csv" onclick="setMode('csv')">⊞ CSV Masivo</button>
+      <button class="tab" id="t-man" onclick="setMode('man')">✎ Manual</button>
+      <button class="tab" id="t-csv" onclick="setMode('csv')">⊞ Masivo</button>
     </div>
   </div>
 
@@ -258,6 +259,22 @@ input:focus{border-color:var(--ac);background:#1a1700}
         <button class="tab" id="tv2" onclick="setVer(2)">⬇ V2 Abajo</button>
       </div></div>
     <button class="bp" onclick="addInd()">+ Generar Etiqueta</button>
+  </div>
+
+
+  <div class="panel" id="p-man">
+    <div class="infobox" style="color:#c8a84b99">Captura libre — no busca en el CSV. Para clientes que facturan directamente.</div>
+    <div class="cg"><label>Número Cliente</label><input id="man-num" placeholder="0000012345"></div>
+    <div class="cg"><label>Nombre Cliente</label><input id="man-tda" placeholder="TIENDA EL CAFÉ"></div>
+    <div class="cg"><label>Nombre Ruta</label><input id="man-ruta" placeholder="RUTA TRADICIONAL ORIZABA"></div>
+    <div class="cg"><label>Versión de Etiqueta</label>
+      <div class="tabs">
+        <button class="tab on" id="tv1c" onclick="setVer(1)">⬜ V1 Lateral</button>
+        <button class="tab" id="tv2c" onclick="setVer(2)">⬇ V2 Abajo</button>
+      </div>
+    </div>
+    <div class="cg"><label>Copias</label><input type="number" id="man-cop" value="1" min="1" max="99"></div>
+    <button class="bp" onclick="addMan()">+ Generar Etiqueta</button>
   </div>
 
   <div class="panel" id="p-csv">
@@ -330,7 +347,7 @@ let mode="ind",allRecs=[],filtRecs=[],queue=[];
 
 function setMode(m){
   mode=m;
-  ["ind","csv"].forEach(x=>{
+  ["ind","man","csv"].forEach(x=>{
     document.getElementById("t-"+x).classList.toggle("on",m===x);
     document.getElementById("p-"+x).classList.toggle("on",m===x);
   });
@@ -343,8 +360,10 @@ function setVer(v){
   [1,2].forEach(n=>{
     const a=document.getElementById("tv"+n);
     const b=document.getElementById("tv"+n+"b");
+    const c=document.getElementById("tv"+n+"c");
     if(a)a.classList.toggle("on",n===v);
     if(b)b.classList.toggle("on",n===v);
+    if(c)c.classList.toggle("on",n===v);
   });
 }
 
@@ -354,6 +373,17 @@ function lblHTML2(lb,qrId){
     <div class="ql2-num">${esc(lb.int)}</div>
     <div class="ql2-ruta">${esc(lb.ruta)}</div>
     <div class="ql2-tda">${esc(lb.tda)}</div>`;
+}
+
+function addMan(){
+  const num=document.getElementById("man-num").value.trim();
+  const tda=document.getElementById("man-tda").value.trim();
+  const ruta=document.getElementById("man-ruta").value.trim();
+  const cop=parseInt(document.getElementById("man-cop").value)||1;
+  if(!num&&!tda){alert("Escribe al menos el número o nombre del cliente.");return;}
+  const rec={int:num||"0000000000",tda:tda,nom:ruta,cli:"",fch:""};
+  for(let c=0;c<cop;c++)queue.push(mkLabel(rec));
+  render();
 }
 
 function autoLoad(){
